@@ -1,0 +1,9 @@
+keywords:{
+    rmemory -> var olan değişkeninin hafızasını tekrardan düzenlicek
+    memory 
+    int float vb
+    return
+    syscall -> sistem çağrıları ile sistenden yanıt alarak dosya okuma vb işlemleri yapıcaz gelecekte
+    kendi dilimle derleyici yapıcağım zaman lazım olucak
+
+}
