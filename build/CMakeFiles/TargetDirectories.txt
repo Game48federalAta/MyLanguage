@@ -1,3 +1,0 @@
-/home/ata/Belgeler/programming/c/language/brain/build/CMakeFiles/brain.dir
-/home/ata/Belgeler/programming/c/language/brain/build/CMakeFiles/edit_cache.dir
-/home/ata/Belgeler/programming/c/language/brain/build/CMakeFiles/rebuild_cache.dir
