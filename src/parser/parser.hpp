@@ -68,13 +68,21 @@ struct NodeStmtExit {
     NodeExpr* expr;
 };
 
+struct NodeStmt;
+
+struct NodeStmtScope
+{
+    std::vector<NodeStmt*>stmts;
+};
+
+
 struct NodeStmtLet {
     Token ident;
     NodeExpr* expr;
 };
 
 struct NodeStmt { 
-    std::variant<NodeStmtExit*, NodeStmtLet*> var;
+    std::variant<NodeStmtExit*, NodeStmtLet*,NodeStmtScope*> var;
 };
 
 struct NodeProg {
@@ -181,8 +189,8 @@ public:
             }else if(op.type == TokenType::div)
             {
                 auto div=m_allacator.alloc<NodeBinExprDiv>();
-                expr_lhs2->var = expr_lhs->var;
                 div->lhs=expr_lhs2;
+                expr_lhs2->var = expr_lhs->var;
                 div->rhs = expr_rhs.value();
                 expr ->var=div;
             }else if(op.type == TokenType::sub)
