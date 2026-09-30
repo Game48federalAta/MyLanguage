@@ -3,13 +3,15 @@
 #include <string>
 #include <vector>
 
-enum class TokenType { exit, int_lit, semi, open_paren, close_paren, ident, let, eq,plus,star};
+enum class TokenType { exit, int_lit, semi, open_paren, close_paren, ident, let, eq,plus,star,sub,div};
 
 std::optional<int> bin_prec(TokenType type){
     switch (type)
     {
     case TokenType::plus:
+    case TokenType::sub:
         return 0;
+    case TokenType::div:
     case TokenType::star:
         return 1;     
     default:
@@ -94,6 +96,18 @@ public:
             else if(peek().value() =='*'){
                 consume();
                 tokens.push_back({.type=TokenType::star});
+                continue;
+            }
+            else if(peek().value() == '-')
+            {
+                consume();
+                tokens.push_back({.type=TokenType::sub});
+                continue;
+            }
+            else if(peek().value() == '/')
+            {
+                consume();
+                tokens.push_back({.type=TokenType::div});
                 continue;
             }
             else if (std::isspace(peek().value())) {

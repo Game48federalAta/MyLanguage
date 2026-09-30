@@ -16,6 +16,24 @@ struct NodeTermIdent {
 
 struct NodeExpr;
 
+struct NodeTermParen
+{
+    NodeExpr* expr;
+};
+
+
+struct NodeBinExprSub
+{
+    NodeExpr* lhs;//left hand size
+    NodeExpr* rhs;//right hand size 
+};
+
+struct NodeBinExprDiv
+{
+    NodeExpr* lhs;//left hand size
+    NodeExpr* rhs;//right hand size 
+};
+
 struct NodeBinExprAdd
 {
     NodeExpr* lhs;//left hand size
@@ -30,7 +48,7 @@ struct NodeBinExprMulti
 
 
 struct NodeBinExpr{
-    std::variant<NodeBinExprAdd*,NodeBinExprMulti*> var;
+    std::variant<NodeBinExprAdd*,NodeBinExprMulti*,NodeBinExprDiv*,NodeBinExprSub*>var;
 };
 
 
@@ -38,7 +56,7 @@ struct NodeBinExpr{
 
 struct NodeTerm
 {
-    std::variant<NodeTermIntLit*,NodeTermIdent*> var;
+    std::variant<NodeTermIntLit*,NodeTermIdent*,NodeTermParen*>var;
 };
 
 
@@ -55,7 +73,7 @@ struct NodeStmtLet {
     NodeExpr* expr;
 };
 
-struct NodeStmt {
+struct NodeStmt { 
     std::variant<NodeStmtExit*, NodeStmtLet*> var;
 };
 
@@ -93,6 +111,19 @@ public:
             return term;
         
         }
+        else if(auto open_paren = try_consume(TokenType::open_paren)){
+            auto expr = parse_expr();
+            if(!expr.has_value()){
+                std::cerr << "Expected expression" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            try_consume(TokenType::close_paren,"Expected ')'");
+            auto term_paren=m_allacator.alloc<NodeTermParen>();
+            term_paren->expr=expr.value();
+            auto term=m_allacator.alloc<NodeTerm>(); 
+            term->var = term_paren;
+            return term;
+        }
         else{
             return {};
         }
@@ -112,11 +143,15 @@ public:
         while(true){
             std::optional<Token> current_tok=peek();
             std::optional<int> prec;
-            if(!current_tok.has_value()){
+            if(current_tok.has_value()){
                 prec=bin_prec(current_tok->type);
 
                 if(!prec.has_value() || prec <min_prec){break;}
+            }else{
+                break;  
             }
+            Token op=consume();
+            
             int next_min_prec=prec.value()+1;
             auto expr_rhs=parse_expr(next_min_prec);
 
@@ -127,22 +162,36 @@ public:
             }
 
             auto expr=m_allacator.alloc<NodeBinExpr>();
-            
-            
-            Token op=consume();
-            
+            auto expr_lhs2=m_allacator.alloc<NodeExpr>();
+                        
             if(op.type == TokenType::plus)
             {
                 auto add=m_allacator.alloc<NodeBinExprAdd>();
-                add->lhs=expr_lhs;
+                expr_lhs2->var = expr_lhs->var;
+                add->lhs=expr_lhs2;
                 add->rhs=expr_rhs.value();
                 expr ->var=add;
             }else if(op.type == TokenType::star)
             {
                 auto multi=m_allacator.alloc<NodeBinExprMulti>();
-                multi->lhs=expr_lhs;
+                expr_lhs2->var = expr_lhs->var;
+                multi->lhs=expr_lhs2;
                 multi->rhs = expr_rhs.value();
                 expr ->var=multi;
+            }else if(op.type == TokenType::div)
+            {
+                auto div=m_allacator.alloc<NodeBinExprDiv>();
+                expr_lhs2->var = expr_lhs->var;
+                div->lhs=expr_lhs2;
+                div->rhs = expr_rhs.value();
+                expr ->var=div;
+            }else if(op.type == TokenType::sub)
+            {
+                auto sub=m_allacator.alloc<NodeBinExprSub>();
+                expr_lhs2->var = expr_lhs->var;
+                sub->lhs=expr_lhs2;
+                sub->rhs = expr_rhs.value();
+                expr ->var=sub;
             }
             expr_lhs->var=expr;             
         }
