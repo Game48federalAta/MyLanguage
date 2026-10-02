@@ -151,6 +151,15 @@ public:
                 gen->gen_scope(stmt_if->scope);
                 gen->m_output <<label_ << ":\n";
             }
+
+            void operator()(const NodeStmtElse* stmt_else)const{
+                std::string label_=gen->create_label();
+
+                gen->gen_scope(stmt_else->scope);
+                gen->m_output << "    jmp "<<label_<<"\n";
+                gen->m_output <<label_ << ":\n";
+                
+            }
         };
 
         StmtVisitor visitor { .gen = this };

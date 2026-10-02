@@ -3,7 +3,8 @@
 #include <string>
 #include <vector>
 
-enum class TokenType { exit, int_lit, semi, open_paren, close_paren, ident, let, eq,plus,star,sub,div,open_curly,close_curly,_if};
+enum class TokenType { exit, int_lit, semi, open_paren, close_paren, ident, let, 
+    eq,plus,star,sub,div,open_curly,close_curly,_if,_else};
 
 std::optional<int> bin_prec(TokenType type){
     switch (type)
@@ -51,6 +52,10 @@ public:
                 }
                 else if(buf=="if"){
                     tokens.push_back({.type=TokenType::_if});
+                    buf.clear();
+                }
+                else if(buf == "else"){
+                    tokens.push_back({.type=TokenType::_else});
                     buf.clear();
                 }
                 else {

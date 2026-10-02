@@ -81,6 +81,12 @@ struct NodeStmtIf
 };
 
 
+struct NodeStmtElse
+{
+    NodeExpr* expr;
+    NodeScope* scope;
+};
+
 
 
 
@@ -90,7 +96,7 @@ struct NodeStmtLet {
 };
 
 struct NodeStmt { 
-    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*>var;
+    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*,NodeStmtElse*>var;
 };
 
 struct NodeProg {
@@ -219,8 +225,10 @@ public:
 
     std::optional<NodeScope*> parse_scope(){
         if(!try_consume(TokenType::open_curly).has_value()){
+
             return {};
         }
+        
         auto scope =m_allacator.alloc<NodeScope>();
         
         while(auto stmt = parse_stmt())
@@ -307,6 +315,23 @@ public:
             return stmt;
 
         }
+
+        else if(auto else_=try_consume(TokenType::_else))
+        {
+
+            auto stmt_else=m_allacator.alloc<NodeStmtElse>();
+            if(auto scope=parse_scope()){
+                stmt_else->scope = scope.value();
+            }else{
+                std::cerr <<"Expected scope" <<std::endl;
+                exit(EXIT_FAILURE);
+            }    
+            auto stmt=m_allacator.alloc<NodeStmt>();
+            stmt->var = stmt_else;
+            return stmt;
+        }
+
+
         else {
             return {};
         }
