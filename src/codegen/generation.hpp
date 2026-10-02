@@ -25,11 +25,11 @@ public:
                 });
             
                 if(it == gen->m_vars.cend()){
-                    std::cerr << "Undeclared identifier"<<std::endl;
+                    std::cerr << "Undeclared identifier: "<<term_ident->ident.value.value()<<std::endl;
                     exit(EXIT_FAILURE);
                 }
                 std::stringstream offset;
-                offset << "QWORD [rsp + " << (gen->m_stack_size - (*it).stack_loc - 1) * 8 << "]\n";
+                offset << "QWORD [rsp + " << (gen->m_stack_size - (*it).stack_loc - 1) * 8 << "]";
                 gen->push(offset.str());
             }
             void operator()(const NodeTermParen* paren)
@@ -107,6 +107,14 @@ public:
         std::visit(visitor, expr -> var);
     }
 
+    void gen_scope(const NodeScope* scope){
+        begin_scope();
+        for(const NodeStmt* stmt: scope->stmts){
+            gen_stmt(stmt);
+        }
+        end_scope();
+    }
+
     void gen_stmt(const NodeStmt* stmt)
     {
         struct StmtVisitor {
@@ -130,8 +138,18 @@ public:
                 gen->m_vars.push_back({ .name = stmt_let->ident.value.value(),.stack_loc = gen->m_stack_size });
                 gen->gen_expr(stmt_let->expr);
             }
-            void operator()(const NodeStmtScope* scope)const{
+            void operator()(const NodeScope * scope)const{
+                gen->gen_scope(scope);
+            }
 
+            void operator()(const NodeStmtIf* stmt_if)const{
+                gen->gen_expr(stmt_if->expr);
+                gen->pop("rax");
+                std::string label_=gen->create_label();
+                gen-> m_output <<"    test rax, rax\n";
+                gen->m_output << "    jz "<<label_<<"\n"; // jz mean if expr if statements equal 0 jump other label well is passing if statement if not have else statement
+                gen->gen_scope(stmt_if->scope);
+                gen->m_output <<label_ << ":\n";
             }
         };
 
@@ -166,6 +184,28 @@ private:
         m_stack_size--;
     }
 
+    void begin_scope(){
+        m_scopes.push_back(m_vars.size());
+    }
+
+    void end_scope(){
+        size_t pop_count = m_vars.size() - m_scopes.back();
+        m_output << "    add rsp, " << pop_count * 8  <<"\n";
+        m_stack_size -= pop_count;
+
+        for(int i = 0; i < pop_count ; i++){
+            m_vars.pop_back();
+        }
+        m_scopes.pop_back();
+    }
+    
+    
+    std::string create_label(){
+        std::stringstream label;
+        label << "label"<< m_label_count++;
+        return label.str();
+    }
+
     struct Var {
         std::string name;
         size_t stack_loc;
@@ -175,4 +215,6 @@ private:
     std::stringstream m_output;
     size_t m_stack_size = 0;
     std::vector<Var> m_vars {};
+    std::vector<size_t>m_scopes {};
+    int m_label_count=0;
 };

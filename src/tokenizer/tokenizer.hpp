@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-enum class TokenType { exit, int_lit, semi, open_paren, close_paren, ident, let, eq,plus,star,sub,div,open_curly,close_curly};
+enum class TokenType { exit, int_lit, semi, open_paren, close_paren, ident, let, eq,plus,star,sub,div,open_curly,close_curly,_if};
 
 std::optional<int> bin_prec(TokenType type){
     switch (type)
@@ -44,17 +44,18 @@ public:
                 if (buf == "exit") {
                     tokens.push_back({ .type = TokenType::exit });
                     buf.clear();
-                    continue;
                 }
                 else if (buf == "let") {
                     tokens.push_back({ .type = TokenType::let });
                     buf.clear();
-                    continue;
+                }
+                else if(buf=="if"){
+                    tokens.push_back({.type=TokenType::_if});
+                    buf.clear();
                 }
                 else {
                     tokens.push_back({ .type = TokenType::ident, .value = buf });
                     buf.clear();
-                    continue;
                 }
             }
             else if (std::isdigit(peek().value())) {
@@ -64,22 +65,18 @@ public:
                 }
                 tokens.push_back({ .type = TokenType::int_lit, .value = buf });
                 buf.clear();
-                continue;
             }
             else if (peek().value() == '(') {
                 consume();
                 tokens.push_back({ .type = TokenType::open_paren });
-                continue;
             }
             else if (peek().value() == ')') {
                 consume();
                 tokens.push_back({ .type = TokenType::close_paren });
-                continue;
             }
             else if (peek().value() == ';') {
                 consume();
                 tokens.push_back({ .type = TokenType::semi });
-                continue;
             }
             else if (peek().value() == '=') {
                 consume();
@@ -89,42 +86,35 @@ public:
             else if(peek().value() == '+'){
                 consume();
                 tokens.push_back({.type=TokenType::plus});
-                continue;
-                
-            
             }
             else if(peek().value() =='*'){
                 consume();
                 tokens.push_back({.type=TokenType::star});
-                continue;
             }
             else if(peek().value() == '-')
             {
                 consume();
                 tokens.push_back({.type=TokenType::sub});
-                continue;
             }
             else if(peek().value() == '/')
             {
                 consume();
                 tokens.push_back({.type=TokenType::div});
-                continue;
             }
             else if(peek().value() == '{'){
                 consume();
                 tokens.push_back({.type=TokenType::open_curly});
-                continue;
+
             }else if(peek().value() == '}'){
                 consume();
                 tokens.push_back({.type=TokenType::close_curly});
-                continue;
+                
             }
             else if (std::isspace(peek().value())) {
                 consume();
-                continue;
             }
             else {
-                std::cerr << "You messed up!" << std::endl;
+                std::cerr << "You messed upss1!" << std::endl;
                 exit(EXIT_FAILURE);
             }
         }
