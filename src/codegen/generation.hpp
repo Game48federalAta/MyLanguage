@@ -153,12 +153,28 @@ public:
                     exit(EXIT_FAILURE);
 
                 }
-                if(stmt_assign->op_type =="+"){
-                    std::cout << "+++"<<std::endl;
+                if(stmt_assign->op_type=="+"){
+                    std::cout <<"OL"<<std::endl;  
+                    gen->gen_expr(stmt_assign->expr);
+                    gen->pop("rax");
+                    gen->m_output<<"	add "<<"[rsp + "<<(gen->m_stack_size - it->stack_loc -1)*8 <<"], rax\n";
+                
+                }else if(stmt_assign->op_type=="/"){
+                    std::cout <<"OL"<<std::endl;  
+                    gen->gen_expr(stmt_assign->expr);
+                    gen->pop("rax");
+                    gen->m_output<<"	div "<<"[rsp + "<<(gen->m_stack_size - it->stack_loc -1)*8 <<"]\n";
+                }else if(stmt_assign->op_type=="-"){
+                    std::cout <<"OL"<<std::endl;  
+                    gen->gen_expr(stmt_assign->expr);
+                    gen->pop("rax");
+                    gen->m_output<<"	sub "<<"[rsp + "<<(gen->m_stack_size - it->stack_loc -1)*8 <<"], rax\n";
+                }else{
+                    gen->gen_expr(stmt_assign->expr);
+                    gen->pop("rax");
+                    gen->m_output<<"   mov [rsp +" << (gen->m_stack_size - it->stack_loc -1)*8 <<"], rax\n";
                 }
-                gen->gen_expr(stmt_assign->expr);
-                gen->pop("rax");
-                gen->m_output<<"   mov [rsp +" << (gen->m_stack_size - it->stack_loc -1)*8 <<"], rax\n";
+                
             }
 
             void operator()(const NodeStmtIf* stmt_if)const{

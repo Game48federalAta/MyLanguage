@@ -84,7 +84,8 @@ struct NodeStmtAssign
 {
     Token ident;
     NodeExpr* expr {};
-    std::optional<std::string> op_type;
+    std::optional<std::string> op_type; 
+    std::optional<std::string>value;
 };
 
 
@@ -292,22 +293,70 @@ public:
             return stmt;
         }
 
-        else if(peek().has_value()&& peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type==TokenType::eq){
+        else if(peek().has_value()&& peek().value().type==TokenType::ident){
             const auto assign=m_allacator.alloc<NodeStmtAssign>();
-            
-            assign->ident=consume();
-            consume();
-            if(const auto expr=parse_expr())
-            {
+            if(peek(1).has_value()&& peek(1).value().type==TokenType::eq){
+                assign->ident=consume();
+                consume();
+                if(const auto expr=parse_expr())
+                {
                 assign->expr=expr.value();  
-            }else{
-                std::cerr <<"Invalid expressionn"<<std::endl;
-                exit(EXIT_FAILURE);
-            }                
-            try_consume(TokenType::semi,"Expected ';' ");
-
-            
-            
+                }else{
+                    std::cerr <<"Invalid expressionn"<<std::endl;
+                    exit(EXIT_FAILURE);
+                }                
+                try_consume(TokenType::semi,"Expected ';' ");
+            }else if(peek(1).has_value() && peek(1).value().type==TokenType::plus){
+                std::cout <<"+"<<std::endl;
+                assign->ident=consume();// passed ident
+                consume();//passed +*-/
+                if(peek().has_value()&& peek().value().type==TokenType::eq){
+                    consume();
+                    if(const auto expr=parse_expr()){
+                        
+                        assign->expr=expr.value();  
+                        assign->op_type="+";
+                    }
+                }else{
+                    std::cerr <<"Invalid expressionn"<<std::endl;
+                    exit(EXIT_FAILURE);
+                }  
+                try_consume(TokenType::semi,"Expected ';' ");
+            }            
+            else if(peek(1).has_value() && peek(1).value().type==TokenType::sub){
+                std::cout <<"+"<<std::endl;
+                assign->ident=consume();// passed ident
+                consume();//passed +*-/
+                if(peek().has_value()&& peek().value().type==TokenType::eq){
+                    consume();
+                    if(const auto expr=parse_expr()){
+                        
+                        assign->expr=expr.value();  
+                        assign->op_type="-";
+                    }
+                }else{
+                    std::cerr <<"Invalid expressionn"<<std::endl;
+                    exit(EXIT_FAILURE);
+                }  
+                try_consume(TokenType::semi,"Expected ';' ");
+            } 
+            else if(peek(1).has_value() && peek(1).value().type==TokenType::div){
+                std::cout <<"+"<<std::endl;
+                assign->ident=consume();// passed ident
+                consume();//passed +*-/
+                if(peek().has_value()&& peek().value().type==TokenType::eq){
+                    consume();
+                    if(const auto expr=parse_expr()){
+                        
+                        assign->expr=expr.value();  
+                        assign->op_type="/";
+                    }
+                }else{
+                    std::cerr <<"Invalid expressionn"<<std::endl;
+                    exit(EXIT_FAILURE);
+                }  
+                try_consume(TokenType::semi,"Expected ';' ");
+            } 
 
             auto stmt=m_allacator.emplace<NodeStmt>(assign);
             return stmt;
