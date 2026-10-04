@@ -142,6 +142,25 @@ public:
                 gen->gen_scope(scope);
             }
 
+            void operator()(const NodeStmtAssign* stmt_assign)const{
+                auto it=std::ranges::find_if(gen->m_vars,[&](const Var& var){
+                    return var.name == stmt_assign->ident.value.value();    
+                }); 
+
+                if(it == gen->m_vars.end())
+                {
+                    std::cerr <<"undeclared idendifier"<<std::endl;
+                    exit(EXIT_FAILURE);
+
+                }
+                if(stmt_assign->op_type =="+"){
+                    std::cout << "+++"<<std::endl;
+                }
+                gen->gen_expr(stmt_assign->expr);
+                gen->pop("rax");
+                gen->m_output<<"   mov [rsp +" << (gen->m_stack_size - it->stack_loc -1)*8 <<"], rax\n";
+            }
+
             void operator()(const NodeStmtIf* stmt_if)const{
                 gen->gen_expr(stmt_if->expr);
                 gen->pop("rax");

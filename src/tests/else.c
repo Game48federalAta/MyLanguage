@@ -1,7 +1,3 @@
-int test(int age){
-    if(age >18){
-        return 0;
-    }else{
-        return age;
-    }
+int test(int x,int y){
+    return x-1;
 }

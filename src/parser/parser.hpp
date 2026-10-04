@@ -80,6 +80,13 @@ struct NodeStmtIf
     NodeScope* scope;
 };
 
+struct NodeStmtAssign
+{
+    Token ident;
+    NodeExpr* expr {};
+    std::optional<std::string> op_type;
+};
+
 
 struct NodeStmtElse
 {
@@ -96,7 +103,7 @@ struct NodeStmtLet {
 };
 
 struct NodeStmt { 
-    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*,NodeStmtElse*>var;
+    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*,NodeStmtElse*,NodeStmtAssign*>var;
 };
 
 struct NodeProg {
@@ -125,9 +132,11 @@ public:
 
 
         else if (auto ident = try_consume(TokenType::ident)) {   
-
             auto term_ident = m_allacator.alloc<NodeTermIdent>();
+       
             term_ident ->ident =ident.value();
+            
+            
             auto term = m_allacator.alloc<NodeTerm>();
             term ->var = term_ident;
             return term;
@@ -282,6 +291,28 @@ public:
             stmt->var = stmt_let;
             return stmt;
         }
+
+        else if(peek().has_value()&& peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type==TokenType::eq){
+            const auto assign=m_allacator.alloc<NodeStmtAssign>();
+            
+            assign->ident=consume();
+            consume();
+            if(const auto expr=parse_expr())
+            {
+                assign->expr=expr.value();  
+            }else{
+                std::cerr <<"Invalid expressionn"<<std::endl;
+                exit(EXIT_FAILURE);
+            }                
+            try_consume(TokenType::semi,"Expected ';' ");
+
+            
+            
+
+            auto stmt=m_allacator.emplace<NodeStmt>(assign);
+            return stmt;
+        }
+
         else if(peek().has_value() && peek().value().type==TokenType::open_curly){
             if(auto scope=parse_scope()){
                 auto stmt=m_allacator.alloc<NodeStmt>();
@@ -389,6 +420,16 @@ private:
         else{
             return {};
         }
+    }
+
+    inline std::optional<Token> behind(int offset)
+    {
+        return m_tokens.at(m_index-offset);
+    }
+
+    inline std::optional<Token> get_token_index(int index)
+    {
+        return m_tokens.at(index);
     }
 
     const std::vector<Token> m_tokens;

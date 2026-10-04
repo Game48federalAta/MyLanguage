@@ -27,6 +27,14 @@ public:
 
     }
 
+
+    template <typename T, typename... Args>
+    [[nodiscard]] T* emplace(Args&&... args)
+    {
+        const auto allocated_memory = alloc<T>();
+        return new (allocated_memory) T { std::forward<Args>(args)... };
+    }   
+
     inline ArenaAllacator(const ArenaAllacator& other) = delete;
 
     inline ArenaAllacator operator=(const ArenaAllacator& other) = delete;
