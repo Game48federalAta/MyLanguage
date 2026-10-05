@@ -85,7 +85,6 @@ struct NodeStmtAssign
     Token ident;
     NodeExpr* expr {};
     std::optional<std::string> op_type; 
-    std::optional<std::string>value;
 };
 
 
@@ -294,6 +293,7 @@ public:
         }
 
         else if(peek().has_value()&& peek().value().type==TokenType::ident){
+            
             const auto assign=m_allacator.alloc<NodeStmtAssign>();
             if(peek(1).has_value()&& peek(1).value().type==TokenType::eq){
                 assign->ident=consume();
@@ -339,9 +339,9 @@ public:
                     exit(EXIT_FAILURE);
                 }  
                 try_consume(TokenType::semi,"Expected ';' ");
-            } 
+            }
             else if(peek(1).has_value() && peek(1).value().type==TokenType::div){
-                std::cout <<"+"<<std::endl;
+                std::cout <<"/"<<std::endl;
                 assign->ident=consume();// passed ident
                 consume();//passed +*-/
                 if(peek().has_value()&& peek().value().type==TokenType::eq){
@@ -350,6 +350,23 @@ public:
                         
                         assign->expr=expr.value();  
                         assign->op_type="/";
+                    }
+                }else{
+                    std::cerr <<"Invalid expressionn"<<std::endl;
+                    exit(EXIT_FAILURE);
+                }  
+                try_consume(TokenType::semi,"Expected ';' ");
+            }  
+            else if(peek(1).has_value() && peek(1).value().type==TokenType::star){
+                std::cout <<"*"<<std::endl;
+                assign->ident=consume();// passed ident
+                consume();//passed +*-/
+                if(peek().has_value()&& peek().value().type==TokenType::eq){
+                    consume();
+                    if(const auto expr=parse_expr()){
+                        
+                        assign->expr=expr.value();  
+                        assign->op_type="*";
                     }
                 }else{
                     std::cerr <<"Invalid expressionn"<<std::endl;

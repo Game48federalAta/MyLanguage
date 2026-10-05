@@ -1,3 +1,4 @@
-let x = 4;
-x +=12;    
-exit(x);
+let x = 120 ;
+
+x *=2;    
+exit(x);    

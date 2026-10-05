@@ -159,12 +159,27 @@ public:
                     gen->pop("rax");
                     gen->m_output<<"	add "<<"[rsp + "<<(gen->m_stack_size - it->stack_loc -1)*8 <<"], rax\n";
                 
-                }else if(stmt_assign->op_type=="/"){
-                    std::cout <<"OL"<<std::endl;  
-                    gen->gen_expr(stmt_assign->expr);
+                }else if(stmt_assign->op_type=="*"){
+                    std::cout <<"lL"<<std::endl;
+
+                    
+                    gen->gen_expr(stmt_assign->expr ) ;
+                    
                     gen->pop("rax");
-                    gen->m_output<<"	div "<<"[rsp + "<<(gen->m_stack_size - it->stack_loc -1)*8 <<"]\n";
-                }else if(stmt_assign->op_type=="-"){
+                    gen->pop("rbx");
+                    gen->m_output << "    mul rbx\n";
+                    gen->push("rax");
+                    
+
+                }else if(stmt_assign->op_type =="/"){
+                    gen->gen_expr(stmt_assign->expr ) ;
+                    
+                    gen->pop("rax");
+                    gen->pop("rbx");
+                    gen->m_output << "    div rbx\n";
+                    gen->push("rax");
+                }
+                else if(stmt_assign->op_type=="-"){
                     std::cout <<"OL"<<std::endl;  
                     gen->gen_expr(stmt_assign->expr);
                     gen->pop("rax");
