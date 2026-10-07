@@ -1,4 +1,10 @@
-let x = 120 ;
+let x = 0 ;
 
-x *=2;    
+if(x){
+    exit(1);
+}else{
+    exit(2);
+}
+
+x *=11   ;
 exit(x);    
