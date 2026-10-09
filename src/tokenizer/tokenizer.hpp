@@ -4,7 +4,7 @@
 #include <vector>
 
 enum class TokenType { exit, int_lit, semi, open_paren, close_paren, ident, let, 
-    eq,plus,star,sub,div,open_curly,close_curly,_if,_else};
+    eq,plus,star,sub,div,open_curly,close_curly,_if,_else, function,return_};
 
 std::optional<int> bin_prec(TokenType type){
     switch (type)
@@ -58,6 +58,16 @@ public:
                     tokens.push_back({.type=TokenType::_else});
                     buf.clear();
                 }
+
+                else if(buf == "function"){
+                    tokens.push_back({.type = TokenType::function});
+                    buf.clear();
+                }
+                else if(buf == "return"){
+                    tokens.push_back({.type=TokenType::return_});
+                    buf.clear();
+                }
+
                 else {
                     tokens.push_back({ .type = TokenType::ident, .value = buf });
                     buf.clear();

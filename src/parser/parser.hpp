@@ -95,6 +95,16 @@ struct NodeStmtElse
 };
 
 
+struct NodeStmtFunc{
+    Token ident;
+    NodeScope* scope;
+};
+
+
+struct NodeStmtReturn
+{
+    NodeExpr* expr;
+};
 
 
 struct NodeStmtLet {
@@ -103,7 +113,7 @@ struct NodeStmtLet {
 };
 
 struct NodeStmt { 
-    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*,NodeStmtElse*,NodeStmtAssign*>var;
+    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*,NodeStmtElse*,NodeStmtAssign*,NodeStmtFunc*,NodeStmtReturn*>var;
 };
 
 struct NodeProg {
@@ -224,6 +234,7 @@ public:
                 sub->lhs=expr_lhs2;
                 sub->rhs = expr_rhs.value();
                 expr ->var=sub;
+            
             }
             expr_lhs->var=expr;             
         }
@@ -378,6 +389,23 @@ public:
             return stmt;
         }
 
+        else if(peek().has_value() && peek().value().type==TokenType::return_){
+            consume();
+            auto stmt_ret=m_allacator.alloc<NodeStmtReturn>();
+            
+            if(auto expr=parse_expr()){
+
+                stmt_ret->expr=expr.value();
+            }else{
+                std::cerr <<"Invalid return"<<std::endl;
+                exit(EXIT_FAILURE);
+            }
+            auto stmt=m_allacator.alloc<NodeStmt>();
+            stmt->var=stmt_ret;
+            return stmt;
+        }
+
+
         else if(peek().has_value() && peek().value().type==TokenType::open_curly){
             if(auto scope=parse_scope()){
                 auto stmt=m_allacator.alloc<NodeStmt>();
@@ -424,6 +452,34 @@ public:
             }    
             auto stmt=m_allacator.alloc<NodeStmt>();
             stmt->var = stmt_else;
+            return stmt;
+        }
+
+
+        if(auto func=expected(TokenType::function)){
+            auto stmt_func=m_allacator.alloc<NodeStmtFunc>();
+            if(peek().has_value() && peek().value().type==TokenType::ident){
+                if(peek().value().value.value() =="exit"){
+                    std::cout << "Warning: func name has name of built in function can be not working wery well "<<std::endl;
+                }
+                stmt_func->ident=peek().value();
+                consume();
+            }
+            if(peek().has_value()&&peek().value().type==TokenType::open_paren && peek(1).has_value()&&peek(1).value().type==TokenType::close_paren){
+                consume();
+                consume();
+            }
+                // is mean void function
+                if(auto scope=parse_scope()){
+                    stmt_func->scope=scope.value();
+                    
+                }else{
+                    std::cerr <<"Expected scope for func" <<std::endl;
+                    exit(EXIT_FAILURE);
+                }  
+
+            auto stmt=m_allacator.alloc<NodeStmt>();
+            stmt->var=stmt_func;
             return stmt;
         }
 

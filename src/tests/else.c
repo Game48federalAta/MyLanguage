@@ -1,3 +1,5 @@
 int test(int x,int y){
-    return x-1;
+    x /=2;
+    return x;
 }
+

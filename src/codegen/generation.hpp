@@ -172,12 +172,16 @@ public:
                     
 
                 }else if(stmt_assign->op_type =="/"){
-                    gen->gen_expr(stmt_assign->expr ) ;
-                    
+                    // TODO fix to dividing in assigment
+                    //cause cannot get value of ident
+                    /*gen->gen_expr(stmt_assign->expr) ;
                     gen->pop("rax");
                     gen->pop("rbx");
                     gen->m_output << "    div rbx\n";
-                    gen->push("rax");
+                    gen->push("rax");*/
+
+                    std::cerr << "Now cannot divide in assigment try {x}={x}/{value}" << std::endl;
+                    exit(EXIT_FAILURE);
                 }
                 else if(stmt_assign->op_type=="-"){
                     std::cout <<"OL"<<std::endl;  
@@ -210,6 +214,20 @@ public:
                 gen->m_output <<label_ << ":\n";
                 
             }
+
+            void operator()(const NodeStmtReturn* ret) const{
+                assert(false); // TODO make return stmtt
+                //gen->m_output<<"    ret"<<"\n";
+            }
+
+            void operator()(const NodeStmtFunc* func) const{
+                std::cout << func->ident.value.value()<<std::endl;
+                std::string label=gen->create_label();
+                gen->m_output <<label << ":\n";
+                gen->gen_scope(func->scope);
+                gen->m_output <<"    call "<<label<<"\n";
+            }
+
         };
 
         StmtVisitor visitor { .gen = this };
@@ -218,6 +236,7 @@ public:
 
     [[nodiscard]] std::string gen_prog()
     {
+        
         m_output << "global _start\n_start:\n";
         std::cout << "ss"<<std::endl;
         for (const NodeStmt* stmt : m_prog.stmts) {
