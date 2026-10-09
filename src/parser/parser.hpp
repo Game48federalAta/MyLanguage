@@ -478,11 +478,26 @@ public:
                     exit(EXIT_FAILURE);
                 }  
 
+            m_funcs.push_back(peek().value().value.value());
+
             auto stmt=m_allacator.alloc<NodeStmt>();
             stmt->var=stmt_func;
+
             return stmt;
         }
 
+        else if(peek().has_value()&& peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type==TokenType::open_paren){
+          /*  auto it = std::find_if(m_funcs.cbegin(),m_funcs.cend(),[&](const Token& token){
+                    return token.value.value()==peek().value().value.value();
+            });
+
+            if(it == m_funcs.cend()){
+                std::cerr << "Undeclared identifier: "<<peek().value().value.value()<<std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+           return it*/
+        }
 
         else {
             return {};
@@ -554,6 +569,7 @@ private:
     }
 
     const std::vector<Token> m_tokens;
+    std::vector<std::string> m_funcs;
     size_t m_index = 0;
     ArenaAllacator m_allacator;
 
