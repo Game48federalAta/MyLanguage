@@ -36,6 +36,11 @@ public:
             {
                 gen->gen_expr(paren->expr);
             }
+            void operator()(const NodeTermRet* ret){
+                gen->m_output << "    mov rax, " << ret->value.value.value() << "\n";
+                gen->push("rax");
+            }
+            
         };
 
         TermVisitor visitor({.gen = this});
@@ -214,18 +219,19 @@ public:
                 gen->m_output <<label_ << ":\n";
                 
             }
-
-            void operator()(const NodeStmtReturn* ret) const{
-                assert(false); // TODO make return stmtt
-                //gen->m_output<<"    ret"<<"\n";
-            }
-
             void operator()(const NodeStmtFunc* func) const{
                 std::cout << func->ident.value.value()<<std::endl;
-                std::string label=gen->create_label();
+                std::string label=gen->create_label(func->ident.value.value());
                 gen->m_output <<label << ":\n";
                 gen->gen_scope(func->scope);
-                gen->m_output <<"    call "<<label<<"\n";
+            }
+            void operator()(const NodeStmtCall* call)const{
+                std::string label=gen->create_label(call->ident.value.value());
+                gen->m_output <<"call "<<label <<"\n";
+            }
+            void operator()(const NodeStmtReturn* ret)const{
+                gen->gen_expr(ret->expr);
+                gen->m_output<<"    ret\n";
             }
 
         };
@@ -280,7 +286,14 @@ private:
     
     std::string create_label(){
         std::stringstream label;
+
         label << "label"<< m_label_count++;
+        return label.str();
+        
+    }
+    std::string create_label(std::string name){
+        std::stringstream label;
+        label << name;
         return label.str();
     }
 

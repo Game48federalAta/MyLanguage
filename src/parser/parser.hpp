@@ -1,6 +1,7 @@
 #pragma once
 
 #include <variant>
+#include <algorithm>
 
 #include "../Allocator/arena.hpp"
 #include "../tokenizer/tokenizer.hpp"
@@ -52,6 +53,14 @@ struct NodeBinExpr{
 };
 
 
+struct NodeTermRet{
+    Token value;
+};
+
+struct NodeStmtReturn
+{
+    NodeExpr* expr;
+};
 
 
 struct NodeTerm
@@ -101,19 +110,19 @@ struct NodeStmtFunc{
 };
 
 
-struct NodeStmtReturn
-{
-    NodeExpr* expr;
-};
-
 
 struct NodeStmtLet {
     Token ident;
     NodeExpr* expr;
 };
 
+struct NodeStmtCall
+{
+    Token ident;
+};
+
 struct NodeStmt { 
-    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*,NodeStmtElse*,NodeStmtAssign*,NodeStmtFunc*,NodeStmtReturn*>var;
+    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*,NodeStmtElse*,NodeStmtAssign*,NodeStmtFunc*,NodeStmtReturn*,NodeStmtCall*>var;
 };
 
 struct NodeProg {
@@ -236,6 +245,7 @@ public:
                 expr ->var=sub;
             
             }
+
             expr_lhs->var=expr;             
         }
         return expr_lhs;
@@ -259,6 +269,8 @@ public:
         
         return scope;
     }
+
+
 
     std::optional<NodeStmt*> parse_stmt()
     {
@@ -303,7 +315,7 @@ public:
             return stmt;
         }
 
-        else if(peek().has_value()&& peek().value().type==TokenType::ident){
+        else if(peek().has_value()&& peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type !=TokenType::open_paren){
             
             const auto assign=m_allacator.alloc<NodeStmtAssign>();
             if(peek(1).has_value()&& peek(1).value().type==TokenType::eq){
@@ -389,21 +401,6 @@ public:
             return stmt;
         }
 
-        else if(peek().has_value() && peek().value().type==TokenType::return_){
-            consume();
-            auto stmt_ret=m_allacator.alloc<NodeStmtReturn>();
-            
-            if(auto expr=parse_expr()){
-
-                stmt_ret->expr=expr.value();
-            }else{
-                std::cerr <<"Invalid return"<<std::endl;
-                exit(EXIT_FAILURE);
-            }
-            auto stmt=m_allacator.alloc<NodeStmt>();
-            stmt->var=stmt_ret;
-            return stmt;
-        }
 
 
         else if(peek().has_value() && peek().value().type==TokenType::open_curly){
@@ -456,7 +453,8 @@ public:
         }
 
 
-        if(auto func=expected(TokenType::function)){
+        if(peek().has_value() && peek().value().type==TokenType::function){
+            consume();
             auto stmt_func=m_allacator.alloc<NodeStmtFunc>();
             if(peek().has_value() && peek().value().type==TokenType::ident){
                 if(peek().value().value.value() =="exit"){
@@ -464,39 +462,58 @@ public:
                 }
                 stmt_func->ident=peek().value();
                 consume();
+                
             }
-            if(peek().has_value()&&peek().value().type==TokenType::open_paren && peek(1).has_value()&&peek(1).value().type==TokenType::close_paren){
-                consume();
+            if(peek().has_value() && peek().value().type==TokenType::open_paren){
                 consume();
             }
-                // is mean void function
-                if(auto scope=parse_scope()){
-                    stmt_func->scope=scope.value();
+            if(peek().has_value() && peek().value().type==TokenType::close_paren){
+                consume();
+            }
+            // is mean void function
+            if(auto scope=parse_scope()){
+                stmt_func->scope=scope.value();
+                
                     
-                }else{
-                    std::cerr <<"Expected scope for func" <<std::endl;
-                    exit(EXIT_FAILURE);
-                }  
-
-            m_funcs.push_back(peek().value().value.value());
+            }else{
+                std::cerr <<"Expected scope for func" <<std::endl;
+                exit(EXIT_FAILURE);
+            }
+            
 
             auto stmt=m_allacator.alloc<NodeStmt>();
             stmt->var=stmt_func;
 
             return stmt;
+
+
         }
 
-        else if(peek().has_value()&& peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type==TokenType::open_paren){
-          /*  auto it = std::find_if(m_funcs.cbegin(),m_funcs.cend(),[&](const Token& token){
-                    return token.value.value()==peek().value().value.value();
-            });
+        else if(peek().has_value() && peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type==TokenType::open_paren){
+            auto stmt_call=m_allacator.alloc<NodeStmtCall>();
+            std::cout <<"tw"<<std::endl;
+            stmt_call->ident=peek().value();
+            consume();
+            expected(TokenType::open_paren,"Expected '(' ");
+            expected(TokenType::close_paren,"Expected ')'");
+            expected(TokenType::semi,"Expected ';'");    
+            auto stmt=m_allacator.alloc<NodeStmt>();
+                stmt->var=stmt_call;
+                std::cout << "selam"<<std::endl;
+            return stmt; 
+        }
 
-            if(it == m_funcs.cend()){
-                std::cerr << "Undeclared identifier: "<<peek().value().value.value()<<std::endl;
-                exit(EXIT_FAILURE);
-            }
 
-           return it*/
+        else if(expected(TokenType::return_)){
+            auto stmt_ret=m_allacator.alloc<NodeStmtReturn>();
+            if(auto expr=parse_expr()){
+                stmt_ret->expr=expr.value();
+            }   
+            expected(TokenType::semi,"Expected ';'");
+
+            auto stmt=m_allacator.alloc<NodeStmt>();
+            stmt->var=stmt_ret;
+            return stmt;
         }
 
         else {
@@ -568,7 +585,7 @@ private:
         return m_tokens.at(index);
     }
 
-    const std::vector<Token> m_tokens;
+    std::vector<Token> m_tokens;
     std::vector<std::string> m_funcs;
     size_t m_index = 0;
     ArenaAllacator m_allacator;

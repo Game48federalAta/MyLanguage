@@ -1,3 +1,5 @@
-function y(){
-    exit(1);
+let a=2;
+function x(){
+    a+=1;
 }
+x();

@@ -65,6 +65,7 @@ public:
                 }
                 else if(buf == "return"){
                     tokens.push_back({.type=TokenType::return_});
+                    std::cout << peek().value()<<std::endl;
                     buf.clear();
                 }
 
