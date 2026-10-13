@@ -299,6 +299,11 @@ public:
             && peek(2).value().type == TokenType::eq) {
             consume();
             auto stmt_let = m_allacator.alloc<NodeStmtLet>();
+            
+            if(peek().has_value() && peek().value().type==TokenType::int_lit){
+                stmt_let->ident.type=TokenType::int_lit;
+            }
+            
             stmt_let->ident =consume();
             consume();
             if (auto expr = parse_expr()) {
@@ -315,7 +320,7 @@ public:
             return stmt;
         }
 
-        else if(peek().has_value()&& peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type !=TokenType::open_paren){
+        else if(peek().has_value()&& peek().value().type==TokenType::ident){
             
             const auto assign=m_allacator.alloc<NodeStmtAssign>();
             if(peek(1).has_value()&& peek(1).value().type==TokenType::eq){

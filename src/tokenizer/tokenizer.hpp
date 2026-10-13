@@ -4,7 +4,8 @@
 #include <vector>
 
 enum class TokenType { exit, int_lit, semi, open_paren, close_paren, ident, let, 
-    eq,plus,star,sub,div,open_curly,close_curly,_if,_else, function,return_};
+    eq,plus,star,sub,div,open_curly,close_curly,_if,_else, function,return_ , int_type
+,float_type,str_type,char_type,single_quote,dot,comma,double_quote };
 
 std::optional<int> bin_prec(TokenType type){
     switch (type)
@@ -68,6 +69,25 @@ public:
                     std::cout << peek().value()<<std::endl;
                     buf.clear();
                 }
+                else if(buf == "char"){
+                    tokens.push_back({.type=TokenType::char_type});
+                    buf.clear();
+                /*}else if(buf == "string"){
+                    tokens.push_back({.type=TokenType::str_type});
+                    buf.clear();
+                */
+                }else if(buf == "int"){
+                    tokens.push_back({.type=TokenType::int_type});
+                    buf.clear();
+                }else if(buf == "float"){
+                    tokens.push_back({.type=TokenType::float_type});
+                    buf.clear();
+                }
+
+                else if(buf== "'"){
+                    tokens.push_back({.type=TokenType::single_quote});
+                    buf.clear();
+                }
 
                 else {
                     tokens.push_back({ .type = TokenType::ident, .value = buf });
@@ -126,6 +146,23 @@ public:
                 tokens.push_back({.type=TokenType::close_curly});
                 
             }
+
+            else if(peek().value() =='.'){
+                consume();
+                tokens.push_back({.type=TokenType::dot});
+            }
+
+            else if(peek().value() == ','){
+                consume();
+                tokens.push_back({.type=TokenType::comma});
+            }
+
+            
+            else if(peek().value() =='"'){
+                consume();
+                tokens.push_back({.type=TokenType::double_quote});
+            }
+
             else if (std::isspace(peek().value())) {
                 consume();
             }
