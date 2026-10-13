@@ -585,7 +585,7 @@ private:
         return m_tokens.at(index);
     }
 
-    std::vector<Token> m_tokens;
+    const std::vector<Token> m_tokens;
     std::vector<std::string> m_funcs;
     size_t m_index = 0;
     ArenaAllacator m_allacator;

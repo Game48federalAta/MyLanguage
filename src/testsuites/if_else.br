@@ -1,0 +1,7 @@
+let a=0
+
+if(a){
+    exit(a+1);
+}else{
+    exit(a);
+}

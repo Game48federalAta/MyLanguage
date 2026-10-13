@@ -1,0 +1,7 @@
+let x= 5;
+let y = 10;
+
+let c= x *2;
+let z= x-2;
+let f=y/x;
+let fg= x +2;

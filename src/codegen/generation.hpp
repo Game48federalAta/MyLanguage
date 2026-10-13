@@ -139,7 +139,6 @@ public:
                 if (it != gen->m_vars.cend()) {
                     std::cerr << "Identifier already used: " << stmt_let->ident.value.value() << std::endl;
                 }
-                
                 gen->m_vars.push_back({ .name = stmt_let->ident.value.value(),.stack_loc = gen->m_stack_size });
                 gen->gen_expr(stmt_let->expr);
             }
@@ -230,6 +229,7 @@ public:
                 gen->m_output <<"call "<<label <<"\n";
             }
             void operator()(const NodeStmtReturn* ret)const{
+                gen->pop("rbp");
                 gen->gen_expr(ret->expr);
                 gen->m_output<<"    ret\n";
             }
@@ -240,10 +240,12 @@ public:
         std::visit(visitor, stmt->var);
     }
 
+
+
     [[nodiscard]] std::string gen_prog()
     {
-        
-        m_output << "global _start\n_start:\n";
+        m_output <<"section .text\n ";
+        m_output << "    global _start\n_start:\n";
         std::cout << "ss"<<std::endl;
         for (const NodeStmt* stmt : m_prog.stmts) {
             gen_stmt(stmt);
@@ -308,4 +310,7 @@ private:
     std::vector<Var> m_vars {};
     std::vector<size_t>m_scopes {};
     int m_label_count=0;
+
+
+
 };
