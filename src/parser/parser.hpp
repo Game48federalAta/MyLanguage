@@ -53,19 +53,22 @@ struct NodeBinExpr{
 };
 
 
-struct NodeTermRet{
-    Token value;
+
+
+
+struct NodeTermRetVal
+{
+    Token int_lit;
 };
 
-struct NodeStmtReturn
+struct NodeStmtRetVal
 {
     NodeExpr* expr;
 };
 
-
 struct NodeTerm
 {
-    std::variant<NodeTermIntLit*,NodeTermIdent*,NodeTermParen*>var;
+    std::variant<NodeTermIntLit*,NodeTermIdent*,NodeTermParen*,NodeTermRetVal*>var;
 };
 
 
@@ -111,6 +114,7 @@ struct NodeStmtFunc{
 
 
 
+
 struct NodeStmtLet {
     Token ident;
     NodeExpr* expr;
@@ -122,7 +126,7 @@ struct NodeStmtCall
 };
 
 struct NodeStmt { 
-    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*,NodeStmtElse*,NodeStmtAssign*,NodeStmtFunc*,NodeStmtReturn*,NodeStmtCall*>var;
+    std::variant<NodeStmtExit*, NodeStmtLet*,NodeScope*,NodeStmtIf*,NodeStmtElse*,NodeStmtAssign*,NodeStmtFunc*,NodeStmtCall*,NodeStmtRetVal*>var;
 };
 
 struct NodeProg {
@@ -140,7 +144,18 @@ public:
 
     std::optional<NodeTerm*> parse_term()
     {
-        if(auto int_lit = expected(TokenType::int_lit))
+        if(auto ret=expected(TokenType::return_)){
+            if(auto ret_int=expected(TokenType::int_lit)){
+                auto term_ret_lit=m_allacator.alloc<NodeTermRetVal>();
+                term_ret_lit->int_lit=ret_int.value();
+                auto term=m_allacator.alloc<NodeTerm>();
+                term->var=term_ret_lit;
+                return term;
+
+            }
+
+        }
+        else if(auto int_lit = expected(TokenType::int_lit))
         {
             auto term_int_lit = m_allacator.alloc<NodeTermIntLit>();//temlate give a NodeExprIntLit struct sizeof and included linear memory array
             term_int_lit ->int_lit = int_lit.value();
@@ -509,8 +524,8 @@ public:
         }
 
 
-        else if(expected(TokenType::return_)){
-            auto stmt_ret=m_allacator.alloc<NodeStmtReturn>();
+        else if(peek().has_value() && peek().value().type==TokenType::return_){
+            auto stmt_ret=m_allacator.alloc<NodeStmtRetVal>();
             if(auto expr=parse_expr()){
                 stmt_ret->expr=expr.value();
             }   

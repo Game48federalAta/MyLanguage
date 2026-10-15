@@ -36,9 +36,9 @@ public:
             {
                 gen->gen_expr(paren->expr);
             }
-            void operator()(const NodeTermRet* ret){
-                gen->m_output << "    mov rax, " << ret->value.value.value() << "\n";
-                gen->push("rax");
+            void operator()(const NodeTermRetVal* ret){
+                gen->m_output << "    mov rax, "<<ret->int_lit.value.value()<<"\n";
+                gen->m_output<<"    ret\n";
             }
             
         };
@@ -228,10 +228,10 @@ public:
                 std::string label=gen->create_label(call->ident.value.value());
                 gen->m_output <<"call "<<label <<"\n";
             }
-            void operator()(const NodeStmtReturn* ret)const{
-                gen->pop("rbp");
+            void operator()(const NodeStmtRetVal* ret)const{
                 gen->gen_expr(ret->expr);
-                gen->m_output<<"    ret\n";
+                //gen->m_output<<"    ret\n";
+                std::cout <<" selam111"<<std::endl;
             }
 
         };
@@ -251,8 +251,10 @@ public:
             gen_stmt(stmt);
         }
 
+
+
+        m_output << "    mov rdi, rax\n";
         m_output << "    mov rax, 60\n";
-        m_output << "    mov rdi, 0\n";
         m_output << "    syscall\n";
         return m_output.str();
     }
