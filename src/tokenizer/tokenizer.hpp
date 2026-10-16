@@ -5,7 +5,7 @@
 
 enum class TokenType { exit, int_lit, semi, open_paren, close_paren, ident, let, 
     eq,plus,star,sub,div,open_curly,close_curly,_if,_else, function,return_ , int_type
-,float_type,str_type,char_type,single_quote,dot,comma,double_quote };
+,float_type,str_type,char_type,single_quote,dot,comma,double_quote,is_small_other,is_bigger_other,is_equal,is_eq_or_small,is_eq_or_big };
 
 std::optional<int> bin_prec(TokenType type){
     switch (type)
@@ -161,6 +161,24 @@ public:
             else if(peek().value() =='"'){
                 consume();
                 tokens.push_back({.type=TokenType::double_quote});
+            }
+
+            else if(peek().value() == '<'){
+                consume();
+                tokens.push_back({.type=TokenType::is_small_other});
+
+            }else if(peek().value() == '>'){
+                consume();
+                tokens.push_back({.type=TokenType::is_bigger_other});
+                
+            }else if(peek().value() == '<' && peek(1).value()=='='){
+                consume();
+                tokens.push_back({.type=TokenType::is_eq_or_small});
+                
+            }else if(peek().value() == '>' && peek(1).value()=='='){
+                consume();
+                tokens.push_back({.type=TokenType::is_eq_or_big});
+                
             }
 
             else if (std::isspace(peek().value())) {
