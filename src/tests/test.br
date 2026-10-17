@@ -1,1 +1,6 @@
-let x=1;
+let x=5;
+function y(){
+    return 1;
+}
+
+y();

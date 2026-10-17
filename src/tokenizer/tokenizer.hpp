@@ -91,6 +91,7 @@ public:
 
                 else {
                     tokens.push_back({ .type = TokenType::ident, .value = buf });
+                    std::cout << buf<<std::endl;
                     buf.clear();
                 }
             }

@@ -335,7 +335,7 @@ public:
             return stmt;
         }
 
-        else if(peek().has_value()&& peek().value().type==TokenType::ident){
+        else if(peek().has_value()&& peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type !=TokenType::open_paren) {
             
             const auto assign=m_allacator.alloc<NodeStmtAssign>();
             if(peek(1).has_value()&& peek(1).value().type==TokenType::eq){
@@ -474,21 +474,21 @@ public:
 
 
         if(peek().has_value() && peek().value().type==TokenType::function){
-            consume();
+            consume();//function passed
             auto stmt_func=m_allacator.alloc<NodeStmtFunc>();
             if(peek().has_value() && peek().value().type==TokenType::ident){
                 if(peek().value().value.value() =="exit"){
                     std::cout << "Warning: func name has name of built in function can be not working wery well "<<std::endl;
                 }
                 stmt_func->ident=peek().value();
-                consume();
+                consume();//ident passed
                 
             }
             if(peek().has_value() && peek().value().type==TokenType::open_paren){
-                consume();
+                consume();//passed (
             }
             if(peek().has_value() && peek().value().type==TokenType::close_paren){
-                consume();
+                consume();//passed )
             }
             // is mean void function
             if(auto scope=parse_scope()){
@@ -505,11 +505,9 @@ public:
             stmt->var=stmt_func;
 
             return stmt;
-
-
         }
 
-        else if(peek().has_value() && peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type==TokenType::open_paren){
+        /*else if(peek().has_value() && peek().value().type==TokenType::ident && peek(1).has_value() && peek(1).value().type==TokenType::open_paren){
             auto stmt_call=m_allacator.alloc<NodeStmtCall>();
             std::cout <<"tw"<<std::endl;
             stmt_call->ident=peek().value();
@@ -521,8 +519,22 @@ public:
                 stmt->var=stmt_call;
                 std::cout << "selam"<<std::endl;
             return stmt; 
-        }
+        }*/
+        else if(peek().has_value()&& peek().value().type==TokenType::ident){
+            if(peek(1).has_value() && peek(1).value().type==TokenType::open_paren){
+                auto stmt_call=m_allacator.alloc<NodeStmtCall>();
+                stmt_call->ident=peek().value();
+                consume();//passed ident
+                expected(TokenType::open_paren);
+                expected(TokenType::close_paren,"Expected ')'");
+                expected(TokenType::semi,"Expected ';'");
 
+                auto stmt=m_allacator.alloc<NodeStmt>();
+                stmt->var=stmt_call;
+                return stmt;
+                
+            }
+        }
 
         else if(peek().has_value() && peek().value().type==TokenType::return_){
             auto stmt_ret=m_allacator.alloc<NodeStmtRetVal>();
