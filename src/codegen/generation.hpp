@@ -199,13 +199,15 @@ public:
             {
                 if(loc.empty()){
                     gen->gen_expr(stmt_exit ->expr,"");  
-                    gen->m_output << "    mov rax, 60\n";
+                    gen->m_output << "    mov rdi, rax\n";
+                    gen->m_output<<"    mov rax, 60\n";
                     gen->pop("rdi","");
                     gen->m_output << "    syscall\n";
                 }
                 else if(loc=="funcs"){
                     std::cout <<"test"<<std::endl;
                     gen->gen_expr(stmt_exit ->expr,"funcs");  
+                    gen->m_funcs << "    mov rdi, rax\n";
                     gen->m_funcs << "    mov rax, 60\n";
                     gen->pop("rdi","func");
                     gen->m_funcs << "    syscall\n";
@@ -287,14 +289,26 @@ public:
                 }else if(stmt_assign->op_type =="/"){
                     // TODO fix to dividing in assigment
                     //cause cannot get value of ident
-                    /*gen->gen_expr(stmt_assign->expr) ;
-                    gen->pop("rax");
-                    gen->pop("rbx");
-                    gen->m_output << "    div rbx\n";
-                    gen->push("rax");*/
+                    /*gen->gen_expr(stmt_assign->expr) ;*/
 
-                    std::cerr << "Now cannot divide in assigment try {x}={x}/{value}" << std::endl;
-                    exit(EXIT_FAILURE);
+
+                    if(loc.empty()){
+                        
+                        gen->gen_expr(stmt_assign->expr,"");
+                        gen->pop("rbx","");
+                        gen->m_output << "    div rbx\n";
+                        gen->push("rax","");
+                    }else if(loc=="funcs"){
+                        gen->pop("rax","funcs");
+                        gen->pop("rbx","funcs");
+                        gen->m_funcs << "    div rbx\n";
+                        gen->push("rax","funcs");
+                    }
+
+                    
+
+                    //std::cerr << "Now cannot divide in assigment try {x}={x}/{value}" << std::endl;
+                    //  exit(EXIT_FAILURE);
                 }
                 else if(stmt_assign->op_type=="-"){
                     if(loc.empty()){
@@ -374,8 +388,17 @@ public:
                 gen->gen_scope(func->scope,"funcs");
             }
             void operator()(const NodeStmtCall* call)const{
+                std::cout <<"call"<<std::endl;
                 std::string label=gen->create_label(call->ident.value.value());
+                std::vector<std::string> regs={"rdi","rsi","rdx","rcx","r8","r9"};
+
+                for(int i=call->args-1;i >=0;i--){
+                    gen->pop(regs[i],"");
+                }
+
+
                 gen->m_output <<"    call "<<label <<"\n";
+                gen->push("rax","");
             }
             void operator()(const NodeStmtRetVal* ret)const{
                 gen->gen_expr(ret->expr,"funcs");

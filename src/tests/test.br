@@ -1,6 +1,3 @@
-let x=5;
-function y(){
-    return 1;
+function x(int a){  
+    exit(a);
 }
-
-y();

@@ -33,6 +33,7 @@ public:
     {
     }
 
+
     inline std::vector<Token> tokenize()
     {
         std::vector<Token> tokens;
@@ -81,6 +82,11 @@ public:
                     buf.clear();
                 }else if(buf == "float"){
                     tokens.push_back({.type=TokenType::float_type});
+                    buf.clear();
+                }
+
+                else if(buf == "string"){
+                    tokens.push_back({.type=TokenType::str_type});
                     buf.clear();
                 }
 

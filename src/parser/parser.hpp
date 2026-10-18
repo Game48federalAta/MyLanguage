@@ -110,6 +110,7 @@ struct NodeStmtElse
 struct NodeStmtFunc{
     Token ident;
     NodeScope* scope;
+    int args;
 };
 
 
@@ -123,6 +124,7 @@ struct NodeStmtLet {
 struct NodeStmtCall
 {
     Token ident;
+    int args;
 };
 
 struct NodeStmt { 
@@ -155,6 +157,8 @@ public:
             }
 
         }
+
+
         else if(auto int_lit = expected(TokenType::int_lit))
         {
             auto term_int_lit = m_allacator.alloc<NodeTermIntLit>();//temlate give a NodeExprIntLit struct sizeof and included linear memory array
@@ -285,6 +289,32 @@ public:
         return scope;
     }
 
+
+    int parse_params()
+    {
+        int args=0;        
+        while(true){
+            if(expected(TokenType::int_type)){
+                
+                if(expected(TokenType::ident))
+                {
+                    args+=1;
+
+                    
+                }else{
+                    std::cerr << "expected param name\n";
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if(expected(TokenType::int_lit)){
+                args+=1;
+            }
+            else if(expected(TokenType::close_paren)){break;}
+            
+        }
+        
+        return args;
+    }
 
 
     std::optional<NodeStmt*> parse_stmt()
@@ -484,22 +514,27 @@ public:
                 consume();//ident passed
                 
             }
-            if(peek().has_value() && peek().value().type==TokenType::open_paren){
-                consume();//passed (
-            }
-            if(peek().has_value() && peek().value().type==TokenType::close_paren){
-                consume();//passed )
+            if(peek().has_value() && peek().value().type==TokenType::open_paren && peek(1).has_value() && peek(1).value().type==TokenType::close_paren){
+                consume();
+                consume();
+                stmt_func->args=0;
+            }else if(peek().has_value() && peek().value().type==TokenType::open_paren && peek(1).has_value() && peek(1).value().type!=TokenType::close_paren)
+            {
+                consume();//passed '('
+                if(auto params=parse_params())
+                {
+                    stmt_func->args=params;
+                }else{
+                    std::cerr <<"Unable to parse parameters"<<std::endl;
+                    exit(EXIT_FAILURE);
+                }
             }
             // is mean void function
             if(auto scope=parse_scope()){
                 stmt_func->scope=scope.value();
                 
                     
-            }else{
-                std::cerr <<"Expected scope for func" <<std::endl;
-                exit(EXIT_FAILURE);
             }
-            
 
             auto stmt=m_allacator.alloc<NodeStmt>();
             stmt->var=stmt_func;
@@ -525,9 +560,22 @@ public:
                 auto stmt_call=m_allacator.alloc<NodeStmtCall>();
                 stmt_call->ident=peek().value();
                 consume();//passed ident
-                expected(TokenType::open_paren);
-                expected(TokenType::close_paren,"Expected ')'");
-                expected(TokenType::semi,"Expected ';'");
+
+                if(peek(2).has_value() && peek(2).value().type==TokenType::close_paren){
+                    consume();//passed '('
+                    consume();//passed ')'
+                    expected(TokenType::semi,"Expected ';'");
+                    stmt_call->args=0;
+                }else if(peek(2).has_value() && peek(2).value().type !=TokenType::close_paren){
+                    consume();
+                    if(auto params=parse_params()){
+                        stmt_call->args=params;
+                    }else{
+                        std::cerr <<"Unable to parse parameters"<<std::endl;
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                
 
                 auto stmt=m_allacator.alloc<NodeStmt>();
                 stmt->var=stmt_call;

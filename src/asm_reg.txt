@@ -1,0 +1,7 @@
+function params
+
+in linux:
+
+
+The first six integer or pointer arguments are passed in registers RDI, RSI, RDX, RCX, R8, and R9
+Floating-point arguments are passed in XMM0 through XMM7
