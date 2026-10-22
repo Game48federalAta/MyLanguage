@@ -294,13 +294,13 @@ public:
     {
         int args=0;        
         while(true){
-            if(expected(TokenType::int_type)){
+            if(auto type=expected(TokenType::int_type)){
                 
-                if(expected(TokenType::ident))
+                if(auto val=expected(TokenType::ident))
                 {
                     args+=1;
-
-                    
+                    std::cout <<"sea";  
+                    m_tokens.erase(m_tokens.begin()+(m_index-1));
                 }else{
                     std::cerr << "expected param name\n";
                     exit(EXIT_FAILURE);
@@ -309,7 +309,9 @@ public:
             else if(expected(TokenType::int_lit)){
                 args+=1;
             }
-            else if(expected(TokenType::close_paren)){break;}
+            else if(expected(TokenType::close_paren)){
+                std::cout <<"break"<<std::endl;
+                break;}
             
         }
         
@@ -319,6 +321,7 @@ public:
 
     std::optional<NodeStmt*> parse_stmt()
     {
+        
         if (peek().value().type == TokenType::exit && peek(1).has_value()
             && peek(1).value().type == TokenType::open_paren) {
             consume();
@@ -333,7 +336,7 @@ public:
             }
             expected(TokenType::close_paren,"Expected ')'");
             expected(TokenType::semi,"Expected ';'");
-               
+              
             auto stmt = m_allacator.alloc<NodeStmt>();
             stmt->var = stmt_exit;
             return stmt;
@@ -583,7 +586,7 @@ public:
                 
             }
         }
-
+        
         else if(peek().has_value() && peek().value().type==TokenType::return_){
             auto stmt_ret=m_allacator.alloc<NodeStmtRetVal>();
             if(auto expr=parse_expr()){
@@ -595,7 +598,7 @@ public:
             stmt->var=stmt_ret;
             return stmt;
         }
-
+        
         else {
             return {};
         }
@@ -665,9 +668,10 @@ private:
         return m_tokens.at(index);
     }
 
-    const std::vector<Token> m_tokens;
+    std::vector<Token> m_tokens;
     std::vector<std::string> m_funcs;
     size_t m_index = 0;
     ArenaAllacator m_allacator;
+
 
 };
